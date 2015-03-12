@@ -31,7 +31,6 @@
 #include <inttypes.h>
 #include <libcec/cec.h>
 #include <list>
-
 #include "device.h"
 
 
@@ -383,6 +382,35 @@ static PyObject * trigger_event(long int event, PyObject * args) {
    return result;
 }
 
+
+static PyObject * transmit(PyObject * self, PyObject * args) {
+   char * tx;
+   if( PyArg_ParseTuple(args, "s", &tx) ) 
+   { 
+	cec_command bytes;
+	bytes.Clear(); 
+  	char * pch;
+  	pch = strtok (tx," ");
+  	while (pch != NULL)
+  	{
+    		pch = strtok (NULL, " ");
+		if (pch != NULL)
+		{ 	
+
+			uint8_t number;
+  			//long int number;
+  			number = strtol (pch,NULL,16);
+			bytes.PushBack(number);
+	    		//printf ("%ld\n",number);
+		}
+  	}
+
+	bytes.transmit_timeout = 0;
+	RETURN_BOOL(CEC_adapter->Transmit(bytes));
+   }
+   return NULL;
+}
+
 static PyObject * volume_up(PyObject * self, PyObject * args) {
    if( PyArg_ParseTuple(args, ":volume_up") )
       RETURN_BOOL(CEC_adapter->VolumeUp());
@@ -506,6 +534,7 @@ static PyMethodDef CecMethods[] = {
 #if CEC_LIB_VERSION_MAJOR > 1
    {"toggle_mute", toggle_mute, METH_VARARGS, "Toggle Mute"},
 #endif
+   {"transmit",   transmit,   METH_VARARGS, "Transmit command"},
    {"set_stream_path", set_stream_path, METH_VARARGS, "Set HDMI stream path"},
    {"set_physical_addr", set_physical_addr, METH_VARARGS,
       "Set HDMI physical address"},
